@@ -9,6 +9,7 @@ import com.devsuperior.movieflix.entities.Review;
 import com.devsuperior.movieflix.entities.User;
 import com.devsuperior.movieflix.repositories.MovieRepository;
 import com.devsuperior.movieflix.repositories.ReviewRepository;
+import com.devsuperior.movieflix.services.exceptions.UnauthorizedException;
 
 @Service
 public class ReviewService {
@@ -25,6 +26,9 @@ public class ReviewService {
 	public ReviewDTO insert(ReviewDTO dto) {
 		
 		User user = authService.authenticated();
+		if (user == null) {
+			throw new UnauthorizedException("Entity not found");
+		}
 		
 		Review entity = new Review();
 		entity.setUser(user);

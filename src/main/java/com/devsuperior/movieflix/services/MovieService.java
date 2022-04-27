@@ -1,6 +1,5 @@
 package com.devsuperior.movieflix.services;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +13,12 @@ import com.devsuperior.movieflix.dto.MovieDTO;
 import com.devsuperior.movieflix.dto.ReviewDTO;
 import com.devsuperior.movieflix.entities.Movie;
 import com.devsuperior.movieflix.entities.Review;
+import com.devsuperior.movieflix.entities.User;
 import com.devsuperior.movieflix.repositories.GenreRepository;
 import com.devsuperior.movieflix.repositories.MovieRepository;
 import com.devsuperior.movieflix.repositories.ReviewRepository;
 import com.devsuperior.movieflix.services.exceptions.ResourceNotFoundException;
+import com.devsuperior.movieflix.services.exceptions.UnauthorizedException;
 
 @Service
 public class MovieService {
@@ -30,16 +31,27 @@ public class MovieService {
 	
 	@Autowired
 	private ReviewRepository reviewRepository;
+	
+	@Autowired
+	private AuthService authService;
 
 	@Transactional(readOnly = true)
 	public Page<MovieDTO> findAll(Long genreId, Pageable pageable) {
 //		Genre genre = (genreId == 0) ? null : genreRepository.getOne(genreId);
+		User user = authService.authenticated();
+		if (user == null) {
+			throw new UnauthorizedException("User not found");
+		}
 		Page<Movie> genres = repository.findByGenre(pageable);
 		return genres.map(x -> new MovieDTO(x));
 	}
 	
 	@Transactional(readOnly = true)
 	public MovieByIdDTO findById(Long id) {
+		User user = authService.authenticated();
+		if (user == null) {
+			throw new UnauthorizedException("User not found");
+		}
 		Movie movie = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
 		return new MovieByIdDTO(movie);
 	}
